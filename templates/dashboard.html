@@ -1,0 +1,167 @@
+{% extends 'base.html' %}
+{% block titulo %}🏠 Panel de Control{% endblock %}
+{% block subtitulo %}
+  Bienvenido, {{ session.usuario_nombre }}
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Tarjetas -->
+<div class="tarjetas">
+  <div class="tarjeta tv">
+    <div class="ico">💰</div>
+    <div class="val">
+      S/. {{ "%.2f"|format(total_hoy) }}
+    </div>
+    <div class="tit">Ventas Hoy</div>
+    <div class="sub">
+      {{ num_ventas_hoy }} transacciones
+    </div>
+  </div>
+  <div class="tarjeta ta">
+    <div class="ico">📦</div>
+    <div class="val">{{ total_productos }}</div>
+    <div class="tit">Productos</div>
+    <div class="sub">en inventario</div>
+  </div>
+  <div class="tarjeta td">
+    <div class="ico">👥</div>
+    <div class="val">{{ total_clientes }}</div>
+    <div class="tit">Clientes</div>
+    <div class="sub">registrados</div>
+  </div>
+  <div class="tarjeta tn">
+    <div class="ico">🛒</div>
+    <div class="val">
+      S/. {{ "%.2f"|format(total_compras) }}
+    </div>
+    <div class="tit">Compras Hoy</div>
+    <div class="sub">en insumos</div>
+  </div>
+</div>
+
+<!-- Alertas stock bajo -->
+{% if alertas %}
+<div class="alerta warning">
+  ⚠️ <strong>
+    Stock bajo en {{ alertas|length }} insumo(s):
+  </strong><br>
+  {% for a in alertas %}
+    • {{ a.nombre }}: {{ a.stock }}
+      {{ a.unidad_medida }}
+      (mínimo: {{ a.stock_minimo }})
+    {% if not loop.last %}<br>{% endif %}
+  {% endfor %}
+</div>
+{% endif %}
+
+<!-- Gráfica -->
+<div class="t-box" style="padding:18px;
+     margin-bottom:20px">
+  <h3 style="color:#1B4332;margin-bottom:14px">
+    📈 Ventas — Últimos 7 días
+  </h3>
+  <canvas id="gc" height="80"></canvas>
+</div>
+
+<!-- Accesos rápidos -->
+<div style="display:grid;
+     grid-template-columns:repeat(auto-fit,
+     minmax(150px,1fr));gap:12px;
+     margin-bottom:20px">
+  <a href="/ventas/nueva" class="btn bv"
+     style="text-align:center;padding:14px">
+    🆕 Nueva Venta
+  </a>
+  <a href="/productos/nuevo" class="btn baz"
+     style="text-align:center;padding:14px">
+    ➕ Nuevo Producto
+  </a>
+  <a href="/compras" class="btn bd"
+     style="text-align:center;padding:14px">
+    🛒 Registrar Compra
+  </a>
+  <a href="/reportes" class="btn bg"
+     style="text-align:center;padding:14px">
+    📊 Ver Reportes
+  </a>
+</div>
+
+<!-- Últimas ventas -->
+<div class="t-box">
+  <div class="t-head">
+    <h3>🕐 Últimas Ventas</h3>
+    <a href="/ventas" class="btn bv bsm">
+      Ver todas →
+    </a>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#Venta</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th>Estado</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for v in ultimas_ventas %}
+      <tr>
+        <td><strong>#{{ "%04d"|format(v.id) }}</strong></td>
+        <td>{{ v.fecha }}</td>
+        <td>{{ v.hora }}</td>
+        <td>{{ v.cliente_nombre }}</td>
+        <td>
+          <strong>
+            S/. {{ "%.2f"|format(v.total) }}
+          </strong>
+        </td>
+        <td>
+          <span class="badge bverde">✅ Activa</span>
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="6"
+            style="text-align:center;color:#aaa;
+                   padding:25px">
+          No hay ventas registradas aún
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+</script>
+<script>
+const ctx = document.getElementById('gc').getContext('2d');
+new Chart(ctx,{
+  type:'bar',
+  data:{
+    labels:{{ fechas|tojson }},
+    datasets:[{
+      label:'Ventas (S/.)',
+      data:{{ totales|tojson }},
+      backgroundColor:'rgba(82,183,136,0.7)',
+      borderColor:'#2D6A4F',
+      borderWidth:1,
+      borderRadius:6
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      y:{
+        beginAtZero:true,
+        ticks:{callback:v=>'S/.'+v}
+      }
+    }
+  }
+});
+</script>
+{% endblock %}

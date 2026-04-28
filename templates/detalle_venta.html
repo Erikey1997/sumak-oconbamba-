@@ -1,0 +1,116 @@
+{% extends 'base.html' %}
+{% block titulo %}
+  📄 Venta #{{ "%04d"|format(venta.id) }}
+{% endblock %}
+{% block subtitulo %}Detalle completo{% endblock %}
+
+{% block contenido %}
+<div class="f-card" style="max-width:650px">
+
+  <!-- Encabezado boleta -->
+  <div style="background:#1B4332;color:#fff;
+              padding:18px;border-radius:7px;
+              text-align:center;margin-bottom:18px">
+    <div style="font-size:28px">🌿</div>
+    <div style="font-size:16px;font-weight:bold">
+      SUMAK' OCONBAMBA
+    </div>
+    <div style="font-size:13px;
+                color:#B7E4C7;margin-top:3px">
+      BOLETA DE VENTA
+      #{{ "%04d"|format(venta.id) }}
+    </div>
+  </div>
+
+  <!-- Info venta -->
+  <div style="display:grid;
+              grid-template-columns:1fr 1fr;
+              gap:10px;margin-bottom:16px;
+              font-size:13px">
+    <div>
+      <strong>📅 Fecha:</strong> {{ venta.fecha }}
+    </div>
+    <div>
+      <strong>⏰ Hora:</strong> {{ venta.hora }}
+    </div>
+    <div>
+      <strong>👤 Cliente:</strong>
+      {{ venta.cliente_nombre }}
+    </div>
+    <div>
+      <strong>📌 Estado:</strong>
+      {% if venta.anulada %}
+        <span class="badge brojo">❌ Anulada</span>
+      {% else %}
+        <span class="badge bverde">✅ Activa</span>
+      {% endif %}
+    </div>
+  </div>
+
+  <!-- Detalle productos -->
+  <table style="margin-bottom:14px">
+    <thead>
+      <tr>
+        <th>Producto</th>
+        <th>Variedad</th>
+        <th>Cantidad</th>
+        <th>P. Unit.</th>
+        <th>Subtotal</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for d in venta.detalles %}
+      <tr>
+        <td>{{ d.producto.nombre }}</td>
+        <td>{{ d.producto.variedad }}</td>
+        <td>
+          {{ d.cantidad }}
+          {{ d.producto.unidad_medida }}
+        </td>
+        <td>S/. {{ "%.2f"|format(d.precio_unitario) }}</td>
+        <td>
+          <strong>
+            S/. {{ "%.2f"|format(d.subtotal) }}
+          </strong>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+
+  <!-- Total -->
+  <div style="background:#1B4332;color:#fff;
+              padding:14px;border-radius:7px;
+              text-align:right;font-size:20px;
+              font-weight:bold;margin-bottom:14px">
+    💰 TOTAL:
+    S/. {{ "%.2f"|format(venta.total) }}
+  </div>
+
+  {% if venta.observaciones %}
+  <div style="background:#f5f5f5;padding:10px;
+              border-radius:5px;font-size:13px;
+              color:#555;margin-bottom:14px">
+    📝 {{ venta.observaciones }}
+  </div>
+  {% endif %}
+
+  <div style="display:flex;gap:10px">
+    <a href="/ventas" class="btn bg"
+       style="flex:1;text-align:center;
+              padding:10px">
+      ← Volver
+    </a>
+    {% if not venta.anulada %}
+    <a href="/ventas/anular/{{ venta.id }}"
+       class="btn br"
+       style="flex:1;text-align:center;
+              padding:10px"
+       onclick="return confirm(
+       '¿Anular esta venta?')">
+      ❌ Anular Venta
+    </a>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

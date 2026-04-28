@@ -1,0 +1,114 @@
+{% extends 'base.html' %}
+{% block titulo %}{{ titulo }}{% endblock %}
+{% block subtitulo %}
+  Completa los datos del producto
+{% endblock %}
+
+{% block contenido %}
+<div class="f-card">
+  <form method="POST">
+
+    <div class="fg">
+      <label>📝 Nombre del producto *</label>
+      <input type="text" name="nombre"
+             value="{{ producto.nombre
+                       if producto else '' }}"
+             placeholder="Ej: Miel de abeja"
+             required>
+    </div>
+
+    <div class="f-row">
+      <div class="fg">
+        <label>📂 Categoría *</label>
+        <select name="categoria" required>
+          <option value="">-- Selecciona --</option>
+          {% for cat in ['Sólido','Líquido',
+                         'Unidad','Otro'] %}
+          <option value="{{ cat }}"
+            {% if producto and
+               producto.categoria == cat %}
+            selected{% endif %}>
+            {{ cat }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+
+      <div class="fg">
+        <label>📏 Unidad de medida *</label>
+        <select name="unidad_medida" required>
+          <option value="">-- Selecciona --</option>
+          {% for u in ['kg','g','L','ml',
+                       'und','oz','lb'] %}
+          <option value="{{ u }}"
+            {% if producto and
+               producto.unidad_medida == u %}
+            selected{% endif %}>
+            {{ u }}
+          </option>
+          {% endfor %}
+        </select>
+      </div>
+    </div>
+
+    <div class="f-row">
+      <div class="fg">
+        <label>⚖️ Cantidad por presentación *</label>
+        <input type="number" name="cantidad_medida"
+               step="0.01" min="0.01"
+               value="{{ producto.cantidad_medida
+                         if producto else '' }}"
+               placeholder="Ej: 1" required>
+      </div>
+
+      <div class="fg">
+        <label>🌿 Variedad</label>
+        <input type="text" name="variedad"
+               value="{{ producto.variedad
+                         if producto else '' }}"
+               placeholder="Ej: Eucalipto">
+      </div>
+    </div>
+
+    <div class="f-row">
+      <div class="fg">
+        <label>💰 Precio de venta (S/.) *</label>
+        <input type="number" name="precio_venta"
+               step="0.01" min="0"
+               value="{{ producto.precio_venta
+                         if producto else '' }}"
+               placeholder="Ej: 25.00" required>
+      </div>
+
+      <div class="fg">
+        <label>📦 Stock actual *</label>
+        <input type="number" name="stock"
+               step="0.01" min="0"
+               value="{{ producto.stock
+                         if producto else '0' }}"
+               placeholder="Ej: 50" required>
+      </div>
+    </div>
+
+    <div class="fg">
+      <label>📋 Descripción</label>
+      <textarea name="descripcion" rows="3"
+                placeholder="Descripción opcional...">
+{{ producto.descripcion if producto else '' }}
+      </textarea>
+    </div>
+
+    <div style="display:flex;gap:10px;margin-top:5px">
+      <button type="submit" class="btn bv"
+              style="flex:1;padding:11px">
+        💾 Guardar Producto
+      </button>
+      <a href="/productos" class="btn bg"
+         style="flex:1;padding:11px;
+                text-align:center">
+        ❌ Cancelar
+      </a>
+    </div>
+  </form>
+</div>
+{% endblock %}

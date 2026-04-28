@@ -1,0 +1,229 @@
+{% extends 'base.html' %}
+{% block titulo %}🛒 Compras{% endblock %}
+{% block subtitulo %}
+  Control de compras de insumos
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Botones y formulario nuevo insumo -->
+<div style="display:flex;gap:10px;
+            margin-bottom:14px;flex-wrap:wrap">
+  <button onclick="
+    document.getElementById('minsumo')
+    .style.display='block'"
+    class="btn baz">
+    ➕ Nuevo Insumo
+  </button>
+  <button onclick="
+    document.getElementById('mcompra')
+    .style.display='block'"
+    class="btn bv">
+    🛒 Registrar Compra
+  </button>
+</div>
+
+<!-- Modal nuevo insumo -->
+<div id="minsumo"
+     style="display:none;background:#fff;
+            border:2px solid #2D6A4F;
+            border-radius:8px;padding:20px;
+            max-width:420px;margin-bottom:16px">
+  <h3 style="color:#1B4332;margin-bottom:14px">
+    ➕ Nuevo Insumo
+  </h3>
+  <form method="POST" action="/insumos/nuevo">
+    <div class="fg">
+      <label>Nombre del insumo *</label>
+      <input type="text" name="nombre"
+             required placeholder="Ej: Azúcar">
+    </div>
+    <div class="f-row">
+      <div class="fg">
+        <label>Unidad de medida *</label>
+        <select name="unidad_medida" required>
+          {% for u in ['kg','g','L','ml',
+                       'und','oz','lb'] %}
+          <option value="{{ u }}">{{ u }}</option>
+          {% endfor %}
+        </select>
+      </div>
+      <div class="fg">
+        <label>Stock mínimo alerta</label>
+        <input type="number" name="stock_minimo"
+               value="5" step="0.1">
+      </div>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="submit" class="btn bv"
+              style="flex:1;padding:9px">
+        💾 Guardar
+      </button>
+      <button type="button" class="btn bg"
+              style="flex:1;padding:9px"
+              onclick="
+                document.getElementById('minsumo')
+                .style.display='none'">
+        ❌ Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Modal registrar compra -->
+<div id="mcompra"
+     style="display:none;background:#fff;
+            border:2px solid #2D6A4F;
+            border-radius:8px;padding:20px;
+            max-width:500px;margin-bottom:16px">
+  <h3 style="color:#1B4332;margin-bottom:14px">
+    🛒 Registrar Compra
+  </h3>
+  <form method="POST" action="/compras/nueva">
+    <div class="fg">
+      <label>Insumo *</label>
+      <select name="insumo_id" required>
+        <option value="">-- Selecciona --</option>
+        {% for ins in insumos %}
+        <option value="{{ ins.id }}">
+          {{ ins.nombre }}
+          ({{ ins.unidad_medida }})
+          — Stock: {{ ins.stock }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+    <div class="f-row">
+      <div class="fg">
+        <label>Cantidad *</label>
+        <input type="number" name="cantidad"
+               step="0.01" min="0.01"
+               id="cc" required
+               oninput="calcTotal()">
+      </div>
+      <div class="fg">
+        <label>Precio unitario S/. *</label>
+        <input type="number"
+               name="precio_unitario"
+               step="0.01" min="0"
+               id="cp" required
+               oninput="calcTotal()">
+      </div>
+    </div>
+    <div style="background:#D8F3DC;
+                padding:10px;border-radius:5px;
+                text-align:right;
+                font-weight:bold;color:#1B4332;
+                margin-bottom:12px;
+                font-size:16px">
+      Total: S/. <span id="ctotal">0.00</span>
+    </div>
+    <div class="fg">
+      <label>Proveedor</label>
+      <input type="text" name="proveedor"
+             placeholder="Nombre del proveedor">
+    </div>
+    <div class="fg">
+      <label>Observaciones</label>
+      <textarea name="observaciones"
+                rows="2"></textarea>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="submit" class="btn bv"
+              style="flex:1;padding:9px">
+        💾 Guardar Compra
+      </button>
+      <button type="button" class="btn bg"
+              style="flex:1;padding:9px"
+              onclick="
+                document.getElementById('mcompra')
+                .style.display='none'">
+        ❌ Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+
+<!-- Filtros -->
+<form method="GET" action="/compras"
+      style="display:flex;gap:8px;
+             margin-bottom:14px;
+             align-items:center;flex-wrap:wrap">
+  <label style="font-size:13px">📅 Desde:</label>
+  <input type="date" name="desde" value="{{ desde }}">
+  <label style="font-size:13px">Hasta:</label>
+  <input type="date" name="hasta" value="{{ hasta }}">
+  <button type="submit" class="btn bv">
+    🔍 Filtrar
+  </button>
+</form>
+
+<!-- Resumen -->
+<div style="background:#FFF3CD;padding:11px 16px;
+     border-radius:7px;margin-bottom:14px;
+     font-weight:bold;color:#856404">
+  💰 Total en compras:
+  S/. {{ "%.2f"|format(total) }} |
+  📅 {{ desde }} → {{ hasta }}
+</div>
+
+<!-- Tabla compras -->
+<div class="t-box">
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Insumo</th>
+        <th>Cantidad</th>
+        <th>P. Unitario</th>
+        <th>Total</th>
+        <th>Proveedor</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for c in compras %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td>{{ c.fecha }}</td>
+        <td>{{ c.hora }}</td>
+        <td>{{ c.insumo.nombre }}</td>
+        <td>
+          {{ c.cantidad }}
+          {{ c.insumo.unidad_medida }}
+        </td>
+        <td>
+          S/. {{ "%.2f"|format(c.precio_unitario) }}
+        </td>
+        <td>
+          <strong style="color:#856404">
+            S/. {{ "%.2f"|format(c.precio_total) }}
+          </strong>
+        </td>
+        <td>{{ c.proveedor }}</td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="8"
+            style="text-align:center;
+                   color:#aaa;padding:25px">
+          No hay compras en este período
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<script>
+function calcTotal(){
+  const c = parseFloat(
+    document.getElementById('cc').value)||0;
+  const p = parseFloat(
+    document.getElementById('cp').value)||0;
+  document.getElementById('ctotal')
+    .textContent=(c*p).toFixed(2);
+}
+</script>
+{% endblock %}

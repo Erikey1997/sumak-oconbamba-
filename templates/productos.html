@@ -1,0 +1,97 @@
+{% extends 'base.html' %}
+{% block titulo %}📦 Productos{% endblock %}
+{% block subtitulo %}
+  Gestiona tu catálogo de productos
+{% endblock %}
+
+{% block contenido %}
+<div class="barra">
+  <a href="/productos/nuevo" class="btn bv">
+    ➕ Nuevo Producto
+  </a>
+  <form method="GET" action="/productos"
+        style="display:flex;gap:8px">
+    <input type="text" name="buscar"
+           value="{{ buscar }}"
+           placeholder="🔍 Buscar producto...">
+    <button type="submit" class="btn bv">
+      Buscar
+    </button>
+    {% if buscar %}
+    <a href="/productos" class="btn bg">
+      ✖ Limpiar
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="t-box">
+  <div class="t-head">
+    <h3>📋 Lista de Productos
+      ({{ productos|length }})</h3>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Categoría</th>
+        <th>Presentación</th>
+        <th>Variedad</th>
+        <th>Precio</th>
+        <th>Stock</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for p in productos %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td><strong>{{ p.nombre }}</strong></td>
+        <td>{{ p.categoria }}</td>
+        <td>{{ p.cantidad_medida }} {{ p.unidad_medida }}</td>
+        <td>{{ p.variedad }}</td>
+        <td>
+          <strong style="color:#1B4332">
+            S/. {{ "%.2f"|format(p.precio_venta) }}
+          </strong>
+        </td>
+        <td>
+          {% if p.stock <= 0 %}
+            <span class="badge brojo">
+              🔴 {{ p.stock }} {{ p.unidad_medida }}
+            </span>
+          {% elif p.stock < 10 %}
+            <span class="badge bdorado">
+              🟡 {{ p.stock }} {{ p.unidad_medida }}
+            </span>
+          {% else %}
+            <span class="badge bverde">
+              🟢 {{ p.stock }} {{ p.unidad_medida }}
+            </span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="/productos/editar/{{ p.id }}"
+             class="btn baz bsm">✏️ Editar</a>
+          <a href="/productos/eliminar/{{ p.id }}"
+             class="btn br bsm"
+             onclick="return confirm(
+             '¿Eliminar {{ p.nombre }}?')">
+            🗑️
+          </a>
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="8"
+            style="text-align:center;
+                   color:#aaa;padding:30px">
+          No hay productos registrados
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

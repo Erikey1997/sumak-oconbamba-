@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+{% block titulo %}💰 Ventas{% endblock %}
+{% block subtitulo %}
+  Registro y control de ventas
+{% endblock %}
+
+{% block contenido %}
+<div class="barra">
+  <a href="/ventas/nueva" class="btn bv">
+    🆕 Nueva Venta
+  </a>
+  <form method="GET" action="/ventas"
+        style="display:flex;gap:8px;align-items:center">
+    <label style="font-size:13px">📅 Desde:</label>
+    <input type="date" name="desde" value="{{ desde }}">
+    <label style="font-size:13px">Hasta:</label>
+    <input type="date" name="hasta" value="{{ hasta }}">
+    <button type="submit" class="btn bv">
+      🔍 Filtrar
+    </button>
+  </form>
+</div>
+
+<!-- Resumen -->
+<div style="background:#D8F3DC;padding:12px 16px;
+     border-radius:7px;margin-bottom:16px;
+     display:flex;gap:30px;flex-wrap:wrap">
+  <span style="color:#1B4332;font-weight:bold">
+    📊 Total ventas: {{ ventas|selectattr(
+    'anulada','equalto',false)|list|length }}
+  </span>
+  <span style="color:#1B4332;font-weight:bold">
+    💰 Total: S/. {{ "%.2f"|format(total_periodo) }}
+  </span>
+  <span style="color:#555;font-size:13px">
+    📅 {{ desde }} → {{ hasta }}
+  </span>
+</div>
+
+<div class="t-box">
+  <table>
+    <thead>
+      <tr>
+        <th>#Venta</th>
+        <th>Fecha</th>
+        <th>Hora</th>
+        <th>Cliente</th>
+        <th>Total</th>
+        <th>Estado</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for v in ventas %}
+      <tr style="{{ 'opacity:0.5' if v.anulada }}">
+        <td><strong>#{{ "%04d"|format(v.id) }}</strong></td>
+        <td>{{ v.fecha }}</td>
+        <td>{{ v.hora }}</td>
+        <td>{{ v.cliente_nombre }}</td>
+        <td>
+          <strong style="color:#1B4332">
+            S/. {{ "%.2f"|format(v.total) }}
+          </strong>
+        </td>
+        <td>
+          {% if v.anulada %}
+            <span class="badge brojo">❌ Anulada</span>
+          {% else %}
+            <span class="badge bverde">✅ Activa</span>
+          {% endif %}
+        </td>
+        <td>
+          <a href="/ventas/detalle/{{ v.id }}"
+             class="btn baz bsm">
+            📄 Ver
+          </a>
+          {% if not v.anulada %}
+          <a href="/ventas/anular/{{ v.id }}"
+             class="btn br bsm"
+             onclick="return confirm(
+             '¿Anular venta #{{ v.id }}?')">
+            ❌ Anular
+          </a>
+          {% endif %}
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="7"
+            style="text-align:center;
+                   color:#aaa;padding:30px">
+          No hay ventas en este período
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

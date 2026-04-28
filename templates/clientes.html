@@ -1,0 +1,126 @@
+{% extends 'base.html' %}
+{% block titulo %}👥 Clientes{% endblock %}
+{% block subtitulo %}
+  Gestiona tu base de clientes
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Formulario nuevo cliente -->
+<div id="mcliente"
+     style="display:none;background:#fff;
+            border:2px solid #2D6A4F;
+            border-radius:8px;padding:20px;
+            max-width:480px;margin-bottom:16px">
+  <h3 style="color:#1B4332;margin-bottom:14px">
+    ➕ Nuevo Cliente
+  </h3>
+  <form method="POST" action="/clientes/nuevo">
+    <div class="fg">
+      <label>Nombre completo *</label>
+      <input type="text" name="nombre"
+             required
+             placeholder="Nombre del cliente">
+    </div>
+    <div class="f-row">
+      <div class="fg">
+        <label>Teléfono</label>
+        <input type="text" name="telefono"
+               placeholder="Ej: 999888777">
+      </div>
+      <div class="fg">
+        <label>Email</label>
+        <input type="email" name="email"
+               placeholder="correo@gmail.com">
+      </div>
+    </div>
+    <div class="fg">
+      <label>Dirección</label>
+      <input type="text" name="direccion"
+             placeholder="Dirección del cliente">
+    </div>
+    <div style="display:flex;gap:8px">
+      <button type="submit" class="btn bv"
+              style="flex:1;padding:9px">
+        💾 Guardar
+      </button>
+      <button type="button" class="btn bg"
+              style="flex:1;padding:9px"
+              onclick="
+                document.getElementById('mcliente')
+                .style.display='none'">
+        ❌ Cancelar
+      </button>
+    </div>
+  </form>
+</div>
+
+<div class="barra">
+  <button onclick="
+    document.getElementById('mcliente')
+    .style.display='block'"
+    class="btn bv">
+    ➕ Nuevo Cliente
+  </button>
+  <form method="GET" action="/clientes"
+        style="display:flex;gap:8px">
+    <input type="text" name="buscar"
+           value="{{ buscar }}"
+           placeholder="🔍 Buscar cliente...">
+    <button type="submit" class="btn bv">
+      Buscar
+    </button>
+    {% if buscar %}
+    <a href="/clientes" class="btn bg">
+      ✖ Limpiar
+    </a>
+    {% endif %}
+  </form>
+</div>
+
+<div class="t-box">
+  <div class="t-head">
+    <h3>📋 Clientes
+      ({{ clientes|length }})</h3>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Nombre</th>
+        <th>Teléfono</th>
+        <th>Dirección</th>
+        <th>Email</th>
+        <th>Registro</th>
+        <th>Acciones</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for c in clientes %}
+      <tr>
+        <td>{{ c.id }}</td>
+        <td><strong>{{ c.nombre }}</strong></td>
+        <td>{{ c.telefono or '—' }}</td>
+        <td>{{ c.direccion or '—' }}</td>
+        <td>{{ c.email or '—' }}</td>
+        <td>{{ c.fecha_registro }}</td>
+        <td>
+          <a href="/clientes/editar/{{ c.id }}"
+             class="btn baz bsm">
+            ✏️ Editar
+          </a>
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="7"
+            style="text-align:center;
+                   color:#aaa;padding:25px">
+          No hay clientes registrados
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endblock %}

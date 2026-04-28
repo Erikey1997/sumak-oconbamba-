@@ -1,0 +1,322 @@
+{% extends 'base.html' %}
+{% block titulo %}🆕 Nueva Venta{% endblock %}
+{% block subtitulo %}
+  Selecciona productos y confirma la venta
+{% endblock %}
+
+{% block contenido %}
+<div class="vg">
+
+  <!-- ═══ PANEL IZQUIERDO: PRODUCTOS ═══ -->
+  <div class="panel">
+    <h3>📦 Seleccionar Producto</h3>
+
+    <input type="text" id="buscar"
+           placeholder="🔍 Buscar producto..."
+           style="width:100%;padding:9px;
+                  border:1px solid #ddd;
+                  border-radius:5px;
+                  margin-bottom:10px;
+                  font-size:13px">
+
+    <div style="overflow-y:auto;max-height:320px">
+      <table id="tprod">
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Precio</th>
+            <th>Stock</th>
+            <th>+</th>
+          </tr>
+        </thead>
+        <tbody id="lprod">
+          <tr>
+            <td colspan="4"
+                style="text-align:center;
+                       color:#aaa">
+              Cargando...
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div style="display:flex;gap:10px;
+                margin-top:14px;
+                align-items:flex-end">
+      <div>
+        <label style="font-size:12px;
+                      font-weight:600;
+                      display:block;
+                      margin-bottom:4px">
+          Cantidad:
+        </label>
+        <input type="number" id="cant"
+               value="1" min="0.1" step="0.1"
+               style="width:80px;padding:8px;
+                      border:1px solid #ddd;
+                      border-radius:5px">
+      </div>
+      <div>
+        <label style="font-size:12px;
+                      font-weight:600;
+                      display:block;
+                      margin-bottom:4px">
+          Precio S/.:
+        </label>
+        <input type="number" id="precio"
+               step="0.01"
+               style="width:100px;padding:8px;
+                      border:1px solid #ddd;
+                      border-radius:5px">
+      </div>
+      <button onclick="agregar()"
+              class="btn bv">
+        ➕ Agregar
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ PANEL DERECHO: CARRITO ═══ -->
+  <div class="panel">
+    <h3>🛒 Carrito de Venta</h3>
+
+    <div style="overflow-y:auto;max-height:260px">
+      <table>
+        <thead>
+          <tr>
+            <th>Producto</th>
+            <th>Cant.</th>
+            <th>Precio</th>
+            <th>Subtotal</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="carrito">
+          <tr id="vacio">
+            <td colspan="5"
+                style="text-align:center;
+                       color:#aaa;padding:20px">
+              El carrito está vacío
+            </td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="total-v">
+      TOTAL: S/. <span id="total">0.00</span>
+    </div>
+
+    <div class="fg">
+      <label>👤 Cliente</label>
+      <select id="cliente"
+              style="width:100%;padding:9px;
+                     border:1px solid #ddd;
+                     border-radius:5px;
+                     font-size:13px">
+        <option value="Público General">
+          Público General
+        </option>
+        {% for c in clientes %}
+        <option value="{{ c.nombre }}">
+          {{ c.nombre }}
+        </option>
+        {% endfor %}
+      </select>
+    </div>
+
+    <div class="fg">
+      <label>📝 Observaciones</label>
+      <textarea id="obs" rows="2"
+                style="width:100%;padding:9px;
+                       border:1px solid #ddd;
+                       border-radius:5px;
+                       font-size:13px;
+                       font-family:inherit">
+      </textarea>
+    </div>
+
+    <button onclick="confirmar()"
+            class="btn bv"
+            style="width:100%;padding:12px;
+                   font-size:15px;
+                   margin-bottom:8px">
+      ✅ CONFIRMAR VENTA
+    </button>
+    <a href="/ventas" class="btn bg"
+       style="width:100%;padding:10px;
+              font-size:13px;display:block;
+              text-align:center">
+      ❌ Cancelar
+    </a>
+  </div>
+</div>
+
+<script>
+let carrito = [];
+let seleccionado = null;
+let todos = [];
+
+async function cargarProductos(f=''){
+  const r = await fetch('/api/productos');
+  todos = await r.json();
+  mostrar(f);
+}
+
+function mostrar(f=''){
+  const tb = document.getElementById('lprod');
+  const lista = f
+    ? todos.filter(p=>
+        p.nombre.toLowerCase().includes(
+          f.toLowerCase())||
+        p.variedad.toLowerCase().includes(
+          f.toLowerCase()))
+    : todos;
+
+  if(!lista.length){
+    tb.innerHTML=`<tr><td colspan="4"
+      style="text-align:center;color:#aaa">
+      Sin resultados</td></tr>`;
+    return;
+  }
+
+  tb.innerHTML = lista.map(p=>`
+    <tr onclick="sel(${p.id})"
+        id="p${p.id}"
+        style="cursor:pointer">
+      <td>
+        <strong>${p.nombre}</strong><br>
+        <small style="color:#777">
+          ${p.variedad} | ${p.unidad_medida}
+        </small>
+      </td>
+      <td>S/. ${p.precio_venta.toFixed(2)}</td>
+      <td>${p.stock} ${p.unidad_medida}</td>
+      <td>
+        <button onclick="sel(${p.id})"
+          class="btn bv bsm">+</button>
+      </td>
+    </tr>`).join('');
+}
+
+function sel(id){
+  seleccionado = todos.find(p=>p.id===id);
+  if(seleccionado){
+    document.getElementById('precio').value =
+      seleccionado.precio_venta.toFixed(2);
+    document.getElementById('cant').value = 1;
+    document.querySelectorAll('#lprod tr')
+      .forEach(r=>r.style.background='');
+    const f = document.getElementById('p'+id);
+    if(f) f.style.background='#D8F3DC';
+  }
+}
+
+function agregar(){
+  if(!seleccionado){
+    alert('Seleccione un producto');return;
+  }
+  const c = parseFloat(
+    document.getElementById('cant').value);
+  const p = parseFloat(
+    document.getElementById('precio').value);
+  if(isNaN(c)||c<=0){
+    alert('Ingrese cantidad válida');return;
+  }
+  if(c>seleccionado.stock){
+    alert(`Stock insuficiente.
+Disponible: ${seleccionado.stock}
+${seleccionado.unidad_medida}`);
+    return;
+  }
+  carrito.push({
+    producto_id : seleccionado.id,
+    nombre      : seleccionado.nombre,
+    variedad    : seleccionado.variedad,
+    unidad      : seleccionado.unidad_medida,
+    cantidad    : c,
+    precio      : p,
+    subtotal    : c * p
+  });
+  refrescar();
+}
+
+function refrescar(){
+  const tb = document.getElementById('carrito');
+  if(!carrito.length){
+    tb.innerHTML=`<tr id="vacio"><td colspan="5"
+      style="text-align:center;color:#aaa;
+      padding:20px">El carrito está vacío</td></tr>`;
+    document.getElementById('total')
+      .textContent='0.00';
+    return;
+  }
+  tb.innerHTML = carrito.map((it,i)=>`
+    <tr>
+      <td>${it.nombre}<br>
+        <small style="color:#777">
+          ${it.variedad}
+        </small>
+      </td>
+      <td>${it.cantidad} ${it.unidad}</td>
+      <td>S/. ${it.precio.toFixed(2)}</td>
+      <td><strong>
+        S/. ${it.subtotal.toFixed(2)}
+      </strong></td>
+      <td>
+        <button onclick="quitar(${i})"
+          class="btn br bsm">🗑️</button>
+      </td>
+    </tr>`).join('');
+
+  const tot = carrito.reduce(
+    (s,i)=>s+i.subtotal,0);
+  document.getElementById('total')
+    .textContent = tot.toFixed(2);
+}
+
+function quitar(i){
+  carrito.splice(i,1);
+  refrescar();
+}
+
+async function confirmar(){
+  if(!carrito.length){
+    alert('Agregue productos al carrito');
+    return;
+  }
+  const tot = carrito.reduce(
+    (s,i)=>s+i.subtotal,0);
+  const data = {
+    cliente      : document.getElementById(
+      'cliente').value,
+    observaciones: document.getElementById(
+      'obs').value,
+    total        : tot,
+    items        : carrito
+  };
+
+  const r = await fetch('/ventas/nueva',{
+    method :'POST',
+    headers:{'Content-Type':'application/json'},
+    body   : JSON.stringify(data)
+  });
+  const res = await r.json();
+
+  if(res.success){
+    alert(`✅ ${res.mensaje}\n` +
+          `Total: S/. ${tot.toFixed(2)}`);
+    window.location.href='/ventas';
+  }else{
+    alert(`❌ Error: ${res.error}`);
+  }
+}
+
+document.getElementById('buscar')
+  .addEventListener('input',
+    e=>mostrar(e.target.value));
+
+cargarProductos();
+</script>
+{% endblock %}

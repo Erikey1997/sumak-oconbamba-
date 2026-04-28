@@ -1,0 +1,205 @@
+{% extends 'base.html' %}
+{% block titulo %}📊 Reportes{% endblock %}
+{% block subtitulo %}
+  Análisis y estadísticas del negocio
+{% endblock %}
+
+{% block contenido %}
+
+<!-- Filtros de fecha -->
+<form method="GET" action="/reportes"
+      style="display:flex;gap:10px;
+             margin-bottom:18px;
+             align-items:center;flex-wrap:wrap;
+             background:#fff;padding:14px;
+             border-radius:8px">
+  <span style="font-weight:bold;color:#1B4332">
+    📅 Período:
+  </span>
+  <input type="date" name="desde" value="{{ desde }}">
+  <span>hasta</span>
+  <input type="date" name="hasta" value="{{ hasta }}">
+  <button type="submit" class="btn bv">
+    🔍 Generar Reporte
+  </button>
+</form>
+
+<!-- Tarjetas de balance -->
+<div class="tarjetas" style="margin-bottom:20px">
+  <div class="tarjeta tv">
+    <div class="ico">📈</div>
+    <div class="val">
+      S/. {{ "%.2f"|format(total_ventas) }}
+    </div>
+    <div class="tit">Total Ventas</div>
+    <div class="sub">{{ num_ventas }} transacciones</div>
+  </div>
+  <div class="tarjeta tn">
+    <div class="ico">📉</div>
+    <div class="val">
+      S/. {{ "%.2f"|format(total_compras) }}
+    </div>
+    <div class="tit">Total Compras</div>
+    <div class="sub">en insumos</div>
+  </div>
+  <div class="tarjeta
+    {{ 'tv' if ganancia >= 0 else 'tarjeta' }}"
+    style="{{ 'background:#E63946'
+              if ganancia < 0 }}">
+    <div class="ico">
+      {{ '💹' if ganancia >= 0 else '⚠️' }}
+    </div>
+    <div class="val">
+      S/. {{ "%.2f"|format(ganancia) }}
+    </div>
+    <div class="tit">Ganancia Neta</div>
+    <div class="sub">Ventas - Compras</div>
+  </div>
+  {% if total_ventas > 0 %}
+  <div class="tarjeta ta">
+    <div class="ico">📊</div>
+    <div class="val">
+      {{ "%.1f"|format(
+         (ganancia/total_ventas)*100) }}%
+    </div>
+    <div class="tit">Margen</div>
+    <div class="sub">de ganancia</div>
+  </div>
+  {% endif %}
+</div>
+
+<!-- Gráfica ventas diarias -->
+{% if ventas_diarias %}
+<div class="t-box" style="padding:18px;
+     margin-bottom:20px">
+  <h3 style="color:#1B4332;margin-bottom:14px">
+    📈 Ventas por Día
+  </h3>
+  <canvas id="gv" height="80"></canvas>
+</div>
+{% endif %}
+
+<!-- Productos más vendidos -->
+<div class="t-box">
+  <div class="t-head">
+    <h3>🏆 Productos Más Vendidos</h3>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>Producto</th>
+        <th>Variedad</th>
+        <th>Cant. Vendida</th>
+        <th>Total Recaudado</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for i, p in enumerate(mas_vendidos) %}
+      <tr>
+        <td>
+          {% if loop.index == 1 %}🥇
+          {% elif loop.index == 2 %}🥈
+          {% elif loop.index == 3 %}🥉
+          {% else %}{{ loop.index }}
+          {% endif %}
+        </td>
+        <td><strong>{{ p.nombre }}</strong></td>
+        <td>{{ p.variedad }}</td>
+        <td>
+          {{ p.total_cant }}
+          {{ p.unidad_medida }}
+        </td>
+        <td>
+          <strong style="color:#1B4332">
+            S/. {{ "%.2f"|format(p.total_venta) }}
+          </strong>
+        </td>
+      </tr>
+    {% else %}
+      <tr>
+        <td colspan="5"
+            style="text-align:center;
+                   color:#aaa;padding:25px">
+          No hay ventas en este período
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Tabla ventas por día -->
+{% if ventas_diarias %}
+<div class="t-box" style="margin-top:18px">
+  <div class="t-head">
+    <h3>📅 Ventas por Día</h3>
+  </div>
+  <table>
+    <thead>
+      <tr>
+        <th>Fecha</th>
+        <th># Ventas</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for v in ventas_diarias %}
+      <tr>
+        <td>{{ v.fecha }}</td>
+        <td>{{ v.num }}</td>
+        <td>
+          <strong style="color:#1B4332">
+            S/. {{ "%.2f"|format(v.total) }}
+          </strong>
+        </td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+</div>
+{% endif %}
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js">
+</script>
+<script>
+{% if ventas_diarias %}
+const ctx = document.getElementById('gv')
+  .getContext('2d');
+new Chart(ctx,{
+  type:'bar',
+  data:{
+    labels:[
+      {% for v in ventas_diarias %}
+      '{{ v.fecha }}'
+      {% if not loop.last %},{% endif %}
+      {% endfor %}
+    ],
+    datasets:[{
+      label:'Ventas S/.',
+      data:[
+        {% for v in ventas_diarias %}
+        {{ v.total }}
+        {% if not loop.last %},{% endif %}
+        {% endfor %}
+      ],
+      backgroundColor:'rgba(82,183,136,0.7)',
+      borderColor:'#2D6A4F',
+      borderWidth:1,
+      borderRadius:5
+    }]
+  },
+  options:{
+    responsive:true,
+    plugins:{legend:{display:false}},
+    scales:{
+      y:{
+        beginAtZero:true,
+        ticks:{callback:v=>'S/.'+v}
+      }
+    }
+  }
+});
+{% endif %}
+</script>
+{% endblock %}

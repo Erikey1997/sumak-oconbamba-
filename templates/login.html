@@ -1,0 +1,84 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport"
+      content="width=device-width,initial-scale=1.0">
+<title>SUMAK OCONBAMBA - Login</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:'Segoe UI',sans-serif;
+  background:linear-gradient(135deg,#1B4332,#2D6A4F);
+  display:flex;align-items:center;
+  justify-content:center;min-height:100vh}
+.box{background:#fff;border-radius:14px;
+  padding:40px;width:100%;max-width:370px;
+  box-shadow:0 15px 40px rgba(0,0,0,.3)}
+.logo{text-align:center;margin-bottom:28px}
+.logo .ico{font-size:52px}
+.logo h1{color:#1B4332;font-size:20px;margin-top:8px}
+.logo p{color:#888;font-size:12px;margin-top:3px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:12px;
+  color:#555;margin-bottom:5px;font-weight:600}
+.fg input{width:100%;padding:11px 13px;
+  border:1px solid #ddd;border-radius:6px;
+  font-size:14px;transition:.2s}
+.fg input:focus{outline:none;border-color:#52B788;
+  box-shadow:0 0 0 3px rgba(82,183,136,.15)}
+.btn-in{width:100%;padding:12px;
+  background:#1B4332;color:#fff;border:none;
+  border-radius:6px;font-size:15px;
+  font-weight:bold;cursor:pointer;transition:.2s}
+.btn-in:hover{background:#2D6A4F}
+.err{background:#FFE0E0;color:#C62828;
+  padding:10px 13px;border-radius:5px;
+  margin-bottom:14px;font-size:13px}
+.ver{text-align:center;margin-top:14px;
+  font-size:11px;color:#bbb}
+.cred{background:#f0faf5;border-radius:6px;
+  padding:10px;margin-bottom:16px;
+  font-size:12px;color:#2D6A4F;text-align:center}
+</style>
+</head>
+<body>
+<div class="box">
+  <div class="logo">
+    <div class="ico">🌿</div>
+    <h1>SUMAK' OCONBAMBA</h1>
+    <p>Sistema de Control de Ventas</p>
+  </div>
+
+  {% with msgs = get_flashed_messages(
+     with_categories=true) %}
+    {% for cat, msg in msgs %}
+      <div class="err">{{ msg }}</div>
+    {% endfor %}
+  {% endwith %}
+
+  <div class="cred">
+    👤 Usuario: <strong>admin</strong> |
+    🔑 Clave: <strong>admin123</strong>
+  </div>
+
+  <form method="POST">
+    <div class="fg">
+      <label>👤 Usuario</label>
+      <input type="text" name="usuario"
+             placeholder="Ingresa tu usuario"
+             value="admin" required autofocus>
+    </div>
+    <div class="fg">
+      <label>🔑 Contraseña</label>
+      <input type="password" name="password"
+             placeholder="Ingresa tu contraseña"
+             required>
+    </div>
+    <button type="submit" class="btn-in">
+      🚀 INGRESAR AL SISTEMA
+    </button>
+  </form>
+  <p class="ver">v2.0 | Sistema en la nube | Gratis 🌿</p>
+</div>
+</body>
+</html>
